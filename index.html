@@ -14,6 +14,9 @@
     
     <!-- html2canvas -->
     <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
+    
+    <!-- SortableJS -->
+    <script src="https://cdn.jsdelivr.net/npm/sortablejs@latest/Sortable.min.js"></script>
 </head>
 <body>
 
@@ -29,6 +32,30 @@
 
     <div class="app-container">
         <aside class="sidebar">
+            <div class="panel-section">
+                <h3><i class="ph-bold ph-gear"></i> Ajustes Globales</h3>
+                <div class="global-settings">
+                    <div class="input-group">
+                        <label><i class="ph ph-at"></i> Usuario / Cuenta</label>
+                        <input type="text" id="global-author" placeholder="ej. @postforge" oninput="updateGlobalAuthor(this.value)" value="@creador">
+                    </div>
+                    <div class="input-group">
+                        <label><i class="ph ph-image-square"></i> Logo Global</label>
+                        <button class="btn-outline" onclick="document.getElementById('global-logo-input').click()">
+                            <i class="ph ph-upload-simple"></i> Subir Logo
+                        </button>
+                        <input type="file" id="global-logo-input" accept="image/*" style="display: none;" onchange="updateGlobalLogo(this)">
+                    </div>
+                    <div class="input-group">
+                        <label><i class="ph ph-aspect-ratio"></i> Formato de Exportación</label>
+                        <div class="ratio-toggle">
+                            <button class="ratio-btn active" id="btn-ratio-11" onclick="setRatio('1:1')">1:1 (Cuadrado)</button>
+                            <button class="ratio-btn" id="btn-ratio-45" onclick="setRatio('4:5')">4:5 (Retrato)</button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
             <div class="panel-section">
                 <h3><i class="ph-bold ph-paint-brush"></i> Tema Visual</h3>
                 <div class="theme-selector">
@@ -52,6 +79,18 @@
                         <input type="radio" name="theme" value="tpl-startup" onchange="changeTheme()">
                         <span>Startup (SaaS)</span>
                     </label>
+                    <label class="theme-card bento">
+                        <input type="radio" name="theme" value="tpl-bento" onchange="changeTheme()">
+                        <span>Bento Box (Apple)</span>
+                    </label>
+                    <label class="theme-card terminal">
+                        <input type="radio" name="theme" value="tpl-terminal" onchange="changeTheme()">
+                        <span>Terminal (Hacker)</span>
+                    </label>
+                    <label class="theme-card notion">
+                        <input type="radio" name="theme" value="tpl-notion" onchange="changeTheme()">
+                        <span>Notion (B/N)</span>
+                    </label>
                 </div>
             </div>
 
@@ -62,6 +101,11 @@
                     <button onclick="addSlide('texto')"><i class="ph ph-paragraph"></i> Texto</button>
                     <button onclick="addSlide('lista')"><i class="ph ph-list-bullets"></i> Lista</button>
                     <button onclick="addSlide('cita')"><i class="ph ph-quotes"></i> Cita</button>
+                    <button onclick="addSlide('comparativa')"><i class="ph ph-columns"></i> Comparativa</button>
+                    <button onclick="addSlide('tweet')"><i class="ph ph-twitter-logo"></i> Tweet / Hilo</button>
+                    <button onclick="addSlide('cifra')"><i class="ph ph-number-circle-seven"></i> Gran Cifra</button>
+                    <button onclick="addSlide('timeline')"><i class="ph ph-git-commit"></i> Paso a Paso</button>
+                    <button class="span-2" onclick="addSlide('media')"><i class="ph ph-image"></i> Recurso Central</button>
                     <button class="span-2" onclick="addSlide('cierre')"><i class="ph ph-bell-ringing"></i> Cierre (CTA)</button>
                 </div>
             </div>
