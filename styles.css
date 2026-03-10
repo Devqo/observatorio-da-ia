@@ -1,0 +1,435 @@
+/* ==========================================================
+   1. VARIABLES GLOBALES Y RESET
+========================================================== */
+:root {
+    --bg-app: #0e1015; 
+    --bg-panel: #16181d; 
+    --border: #272a34;
+    --text-main: #e2e8f0; 
+    --text-muted: #94a3b8;
+    --accent: #6366f1; 
+    --accent-hover: #4f46e5;
+}
+
+* { 
+    box-sizing: border-box; 
+    margin: 0; 
+    padding: 0; 
+    outline: none; 
+}
+
+body { 
+    font-family: 'Plus Jakarta Sans', sans-serif; 
+    background: var(--bg-app); 
+    color: var(--text-main); 
+    height: 100vh; 
+    display: flex; 
+    flex-direction: column; 
+    overflow: hidden; 
+}
+
+/* ==========================================================
+   2. UI: HEADER Y APP LAYOUT
+========================================================== */
+.topbar { 
+    height: 64px; 
+    background: var(--bg-panel); 
+    border-bottom: 1px solid var(--border); 
+    display: flex; 
+    justify-content: space-between; 
+    align-items: center; 
+    padding: 0 24px; 
+    z-index: 100; 
+}
+
+.logo-area { 
+    display: flex; 
+    align-items: center; 
+    gap: 10px; 
+    font-size: 20px; 
+    font-weight: 800; 
+}
+
+.logo-area i { 
+    color: var(--accent); 
+    font-size: 28px; 
+}
+
+.btn-primary { 
+    background: var(--accent); 
+    color: white; 
+    border: none; 
+    padding: 10px 20px; 
+    border-radius: 8px; 
+    font-weight: 600; 
+    cursor: pointer; 
+    display: flex; 
+    align-items: center; 
+    gap: 8px; 
+    transition: 0.2s; 
+    font-family: inherit;
+}
+
+.btn-primary:hover { 
+    background: var(--accent-hover); 
+    transform: translateY(-1px); 
+}
+
+.btn-primary:disabled { 
+    opacity: 0.5; 
+    cursor: not-allowed; 
+    transform: none; 
+}
+
+.app-container { 
+    display: flex; 
+    height: calc(100vh - 64px); 
+}
+
+/* ==========================================================
+   3. UI: SIDEBAR IZQUIERDO (CONTROLES)
+========================================================== */
+.sidebar { 
+    width: 340px; 
+    background: var(--bg-panel); 
+    border-right: 1px solid var(--border); 
+    padding: 24px; 
+    overflow-y: auto; 
+}
+
+.panel-section { margin-bottom: 32px; }
+
+.panel-section h3 { 
+    font-size: 13px; 
+    text-transform: uppercase; 
+    letter-spacing: 1px; 
+    color: var(--text-muted); 
+    margin-bottom: 16px; 
+    display: flex; 
+    align-items: center; 
+    gap: 8px; 
+}
+
+/* Selector de Temas */
+.theme-selector { display: flex; flex-direction: column; gap: 10px; }
+.theme-card { 
+    display: flex; 
+    align-items: center; 
+    padding: 12px 16px; 
+    border-radius: 8px; 
+    cursor: pointer; 
+    border: 1px solid var(--border); 
+    transition: 0.2s; 
+    position: relative; 
+    overflow: hidden; 
+    font-weight: 600; 
+    font-size: 14px;
+}
+.theme-card input { display: none; }
+.theme-card:has(input:checked) { 
+    border-color: var(--accent); 
+    box-shadow: 0 0 0 1px var(--accent); 
+}
+
+/* Colores de las tarjetas de selección de tema */
+.dark-aura { background: linear-gradient(90deg, #1a1a24, #2d1b36); color: #e2e8f0; }
+.minimal-koe { background: #f8f9fa; color: #111; font-family: 'Space Grotesk'; }
+.brutal-acid { background: #d4ff00; color: #000; font-family: 'Archivo Black'; text-transform: uppercase; border: 2px solid #000 !important; }
+.editorial { background: #eae6df; color: #2c2c2c; font-family: 'Playfair Display'; font-style: italic; }
+.startup { background: #ffffff; color: #2563eb; }
+
+/* Botones Añadir Slide */
+.add-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; }
+.add-grid button { 
+    background: transparent; 
+    border: 1px solid var(--border); 
+    color: var(--text-main); 
+    padding: 16px 10px; 
+    border-radius: 8px; 
+    cursor: pointer; 
+    display: flex; 
+    flex-direction: column; 
+    align-items: center; 
+    gap: 8px; 
+    font-size: 13px; 
+    transition: 0.2s; 
+    font-family: inherit;
+}
+.add-grid button i { font-size: 24px; color: var(--text-muted); }
+.add-grid button:hover { background: rgba(255,255,255,0.03); border-color: #4b5563; }
+.add-grid button:hover i { color: var(--text-main); }
+.span-2 { grid-column: span 2; }
+
+/* ==========================================================
+   4. UI: ÁREA DE TRABAJO Y EDICIÓN (CANVAS)
+========================================================== */
+.canvas-area { 
+    flex: 1; 
+    background: var(--bg-app); 
+    overflow-y: auto; 
+    position: relative; 
+}
+
+.canvas-notice { 
+    position: sticky; 
+    top: 0; 
+    background: rgba(99, 102, 241, 0.1); 
+    color: #818cf8; 
+    text-align: center; 
+    padding: 12px; 
+    font-size: 13px; 
+    z-index: 50; 
+    backdrop-filter: blur(10px); 
+    display: flex; 
+    justify-content: center; 
+    align-items: center; 
+    gap: 8px; 
+    border-bottom: 1px solid rgba(99, 102, 241, 0.2);
+}
+
+#slides-wrapper { 
+    padding: 60px; 
+    display: flex; 
+    flex-direction: column; 
+    align-items: center; 
+    gap: 80px; 
+}
+
+/* Comportamiento al editar texto */
+[contenteditable="true"] { transition: 0.2s; border-radius: 4px; border: 1px dashed transparent; }
+[contenteditable="true"]:hover { border-color: rgba(150,150,150,0.5); }
+[contenteditable="true"]:focus { border-color: var(--accent); background: rgba(255,255,255,0.05); cursor: text; }
+
+/* ==========================================================
+   5. ESTRUCTURA DE LA SLIDE Y HERRAMIENTAS FLOTANTES
+========================================================== */
+.slide-wrapper { position: relative; display: flex; align-items: center; gap: 20px; }
+
+.slide-actions { 
+    display: flex; 
+    flex-direction: column; 
+    gap: 8px; 
+    opacity: 0; 
+    transform: translateX(-10px); 
+    transition: 0.2s; 
+    position: absolute; 
+    left: -60px;
+}
+.slide-wrapper:hover .slide-actions { opacity: 1; transform: translateX(0); }
+
+.action-btn { 
+    width: 40px; 
+    height: 40px; 
+    border-radius: 8px; 
+    background: var(--bg-panel); 
+    border: 1px solid var(--border); 
+    color: var(--text-muted); 
+    cursor: pointer; 
+    display: flex; 
+    justify-content: center; 
+    align-items: center; 
+    font-size: 18px; 
+    transition: 0.2s; 
+}
+.action-btn:hover { color: white; background: #2d313f; }
+.action-btn.delete:hover { background: #ef4444; color: white; border-color: #ef4444; }
+
+/* Contenedor principal exportable (Instagram 1:1) */
+.slide { 
+    width: 540px; 
+    height: 540px; 
+    position: relative; 
+    overflow: hidden; 
+    display: flex; 
+    box-shadow: 0 25px 50px -12px rgba(0,0,0,0.4); 
+    border-radius: 2px; 
+}
+
+.slide-content { 
+    width: 100%; 
+    height: 100%; 
+    display: flex; 
+    flex-direction: column; 
+    position: relative; 
+    z-index: 10; 
+    padding: 45px; 
+}
+
+/* ==========================================================
+   6. SISTEMA DE LOGO SVG DINÁMICO (FILTROS CSS)
+========================================================== */
+.slide-logo { 
+    position: absolute; 
+    bottom: 30px; 
+    right: 30px; 
+    width: 45px; 
+    height: 45px; 
+    z-index: 50; 
+    object-fit: contain; /* Asegura que el SVG mantenga proporciones */
+    transition: filter 0.3s ease, opacity 0.3s ease;
+}
+
+/* TPL AURA (Oscuro) -> Fuerza SVG a Blanco puro */
+.tpl-aura .slide-logo { filter: brightness(0) invert(1); }
+
+/* TPL THREAD y ACID (Claros) -> Fuerza SVG a Negro puro */
+.tpl-thread .slide-logo,
+.tpl-acid .slide-logo { filter: brightness(0); }
+
+/* TPL EDITORIAL (Crema) -> Carbón elegante */
+.tpl-editorial .slide-logo { filter: brightness(0); opacity: 0.8; }
+
+/* TPL STARTUP (Blanco) -> Gris oscuro casi negro */
+.tpl-startup .slide-logo { filter: brightness(0); opacity: 0.9; }
+
+/* ==========================================================
+   7. SISTEMA DE IMÁGENES DENTRO DE LA SLIDE
+========================================================== */
+.slide-media {
+    position: relative; 
+    margin-top: 25px; 
+    flex-grow: 1; 
+    display: flex;
+    justify-content: center; 
+    align-items: center; 
+    max-height: 240px; 
+    width: 100%; 
+    animation: imgFadeIn 0.4s ease;
+}
+.slide-media img { width: 100%; height: 100%; object-fit: cover; }
+
+.remove-media {
+    position: absolute; 
+    top: 10px; 
+    right: 10px; 
+    background: rgba(0,0,0,0.6); 
+    color: white; 
+    border: none; 
+    border-radius: 50%; 
+    width: 32px; 
+    height: 32px; 
+    display: flex; 
+    align-items: center; 
+    justify-content: center; 
+    cursor: pointer; 
+    opacity: 0; 
+    transition: 0.2s; 
+    font-size: 16px;
+}
+.slide-media:hover .remove-media { opacity: 1; }
+.remove-media:hover { background: #ef4444; transform: scale(1.1); }
+
+@keyframes imgFadeIn { 
+    from { opacity: 0; transform: translateY(10px); } 
+    to { opacity: 1; transform: translateY(0); } 
+}
+
+/* Filtros de imagen según el Template */
+.tpl-aura .slide-media img { border-radius: 12px; border: 1px solid rgba(255,255,255,0.15); box-shadow: 0 10px 30px rgba(0,0,0,0.5); }
+.tpl-thread .slide-media img { border-radius: 8px; filter: grayscale(15%); border: 1px solid #e5e7eb; }
+.tpl-acid .slide-media img { border: 4px solid #000; box-shadow: 6px 6px 0px #000; filter: contrast(110%); }
+.tpl-editorial .slide-media img { border-radius: 0; padding: 6px; background: #fff; border: 1px solid #D1CAC0; box-shadow: 0 4px 15px rgba(0,0,0,0.05); }
+.tpl-startup .slide-media img { border-radius: 12px; box-shadow: 0 10px 25px -5px rgba(0,0,0,0.1); border: 1px solid #f1f5f9; }
+
+/* ==========================================================
+   8. DISEÑO DE LOS 5 TEMPLATES PREMIUM
+========================================================== */
+
+/* --- 1. AURA (Neón Oscuro / Glassmorphism) --- */
+.tpl-aura { background: #0a0a0a; color: #ffffff; font-family: 'Plus Jakarta Sans', sans-serif; }
+.tpl-aura::before { content: ''; position: absolute; top: -20%; left: -20%; width: 300px; height: 300px; background: #7c3aed; border-radius: 50%; filter: blur(80px); opacity: 0.6; z-index: 1;}
+.tpl-aura::after { content: ''; position: absolute; bottom: -20%; right: -20%; width: 300px; height: 300px; background: #06b6d4; border-radius: 50%; filter: blur(80px); opacity: 0.5; z-index: 1;}
+.tpl-aura .slide-content { background: rgba(255, 255, 255, 0.03); backdrop-filter: blur(20px); -webkit-backdrop-filter: blur(20px); border: 1px solid rgba(255,255,255,0.05); margin: 20px; height: calc(100% - 40px); border-radius: 24px; }
+.tpl-aura h1 { font-size: 42px; font-weight: 800; line-height: 1.1; margin-bottom: 20px; background: linear-gradient(to right, #fff, #a5b4fc); -webkit-background-clip: text; color: transparent;}
+.tpl-aura h2 { font-size: 32px; font-weight: 800; color: #fff; margin-bottom: 15px; }
+.tpl-aura p { font-size: 18px; color: #cbd5e1; line-height: 1.6; }
+.tpl-aura ul li { margin-bottom: 15px; font-size: 18px; display: flex; gap: 10px; color: #e2e8f0; list-style: none;}
+.tpl-aura ul li::before { content: '→'; color: #06b6d4; font-weight: bold; }
+
+/* --- 2. THREAD (Minimalista / Creador Dan Koe) --- */
+.tpl-thread { background: #f8f9fa; color: #111; font-family: 'Space Grotesk', sans-serif; }
+.tpl-thread::before { content: ''; position: absolute; top: 0; left: 0; right: 0; bottom: 0; background-image: radial-gradient(#d1d5db 1.5px, transparent 1.5px); background-size: 24px 24px; opacity: 0.8; z-index: 1; }
+.tpl-thread .slide-content { border-left: 4px solid #111; padding-left: 35px; margin-left: 30px; background: transparent; }
+.tpl-thread h1 { font-size: 48px; font-weight: 700; letter-spacing: -1.5px; line-height: 1.1; margin-bottom: 15px; }
+.tpl-thread h2 { font-size: 30px; letter-spacing: -1px; margin-bottom: 20px; text-transform: uppercase; }
+.tpl-thread p { font-size: 19px; line-height: 1.6; color: #374151; }
+.tpl-thread .mono { font-family: 'Courier New', monospace; font-size: 14px; text-transform: uppercase; letter-spacing: 2px; margin-bottom: 10px; display: block; color: #6b7280; }
+.tpl-thread ul li { margin-bottom: 15px; font-size: 19px; border-bottom: 1px solid #e5e7eb; padding-bottom: 10px; list-style: none; }
+
+/* --- 3. ACID (Brutalismo Urbano) --- */
+.tpl-acid { background: #d4ff00; color: #000; font-family: 'Archivo Black', sans-serif; border: 12px solid #000; }
+.tpl-acid h1 { font-size: 55px; line-height: 0.9; text-transform: uppercase; text-shadow: 4px 4px 0px #fff, 8px 8px 0px #000; margin-bottom: 30px; transform: rotate(-2deg);}
+.tpl-acid h2 { font-size: 38px; text-transform: uppercase; background: #000; color: #d4ff00; display: inline-block; padding: 10px 15px; margin-bottom: 20px; }
+.tpl-acid p { font-family: 'Space Grotesk', sans-serif; font-weight: 700; font-size: 22px; line-height: 1.4; background: #fff; border: 3px solid #000; padding: 15px; box-shadow: 5px 5px 0px #000;}
+.tpl-acid ul li { font-family: 'Space Grotesk', sans-serif; font-weight: 700; font-size: 20px; list-style: none; padding: 10px; border: 3px solid #000; background: #fff; margin-bottom: 10px; box-shadow: 4px 4px 0px #000;}
+
+/* --- 4. EDITORIAL (Moda / Lifestyle) --- */
+.tpl-editorial { background: #EAE6DF; color: #2c2c2c; font-family: 'Plus Jakarta Sans', sans-serif; }
+.tpl-editorial::before { content: ''; position: absolute; top: 15px; bottom: 15px; left: 15px; right: 15px; border: 1px solid #D1CAC0; z-index: 1; pointer-events: none;}
+.tpl-editorial h1 { font-family: 'Playfair Display', serif; font-size: 46px; font-weight: 400; line-height: 1.1; margin-bottom: 25px; text-align: center; }
+.tpl-editorial h1 i { font-style: italic; color: #6B5B49; }
+.tpl-editorial h2 { font-family: 'Playfair Display', serif; font-style: italic; font-size: 34px; margin-bottom: 20px; font-weight: 400;}
+.tpl-editorial p { font-size: 17px; line-height: 1.8; color: #4a4a4a; font-weight: 400; }
+.tpl-editorial ul { margin-left: 20px; }
+.tpl-editorial ul li { margin-bottom: 15px; font-family: 'Playfair Display', serif; font-style: italic; font-size: 22px; color: #4a4a4a;}
+
+/* --- 5. STARTUP (SaaS / Clean) --- */
+.tpl-startup { background: #ffffff; color: #1e293b; font-family: 'Plus Jakarta Sans', sans-serif; }
+.tpl-startup::before { content: ''; position: absolute; top: -50px; right: -50px; width: 250px; height: 250px; background: #eff6ff; border-radius: 50%; z-index: 1;}
+.tpl-startup .slide-content { background: #ffffff; border-radius: 16px; box-shadow: 0 20px 40px -10px rgba(0,0,0,0.08); margin: 30px; height: calc(100% - 60px); padding: 40px; border: 1px solid #f1f5f9; }
+.tpl-startup h1 { font-size: 40px; font-weight: 800; color: #0f172a; margin-bottom: 20px; line-height: 1.2;}
+.tpl-startup h2 { font-size: 26px; font-weight: 800; color: #2563eb; margin-bottom: 20px; }
+.tpl-startup p { font-size: 18px; line-height: 1.6; color: #475569; }
+.tpl-startup ul li { font-size: 18px; margin-bottom: 12px; list-style: none; display: flex; align-items: center; gap: 10px; font-weight: 600;}
+.tpl-startup ul li::before { content: '✓'; display: inline-flex; justify-content: center; align-items: center; width: 24px; height: 24px; background: #dbeafe; color: #2563eb; border-radius: 50%; font-size: 14px;}
+
+/* ==========================================================
+   9. LAYOUTS INTERNOS (Alineación y distribución)
+========================================================== */
+.layout-titulo { justify-content: center; }
+.tpl-editorial .layout-titulo { text-align: center; }
+.layout-texto { justify-content: flex-start; }
+.layout-lista { justify-content: flex-start; }
+
+.layout-cita { justify-content: center; text-align: center; }
+.layout-cita p { font-size: 28px; font-weight: 600; line-height: 1.4; margin-bottom: 20px; }
+
+.layout-cierre { justify-content: center; align-items: center; text-align: center; }
+.layout-cierre .social-icons { font-size: 32px; margin-top: 30px; letter-spacing: 20px; color: inherit; opacity: 0.8;}
+
+/* ==========================================================
+   10. SISTEMA DE TOAST NOTIFICATIONS (Avisos flotantes)
+========================================================== */
+#toast-container { 
+    position: fixed; 
+    bottom: 24px; 
+    right: 24px; 
+    display: flex; 
+    flex-direction: column; 
+    gap: 10px; 
+    z-index: 9999; 
+}
+
+.toast { 
+    background: #1e293b; 
+    color: white; 
+    padding: 14px 20px; 
+    border-radius: 8px; 
+    font-size: 14px; 
+    font-weight: 600; 
+    box-shadow: 0 10px 15px -3px rgba(0,0,0,0.3); 
+    display: flex; 
+    align-items: center; 
+    gap: 10px; 
+    animation: slideIn 0.3s ease forwards; 
+    border-left: 4px solid var(--accent);
+}
+
+@keyframes slideIn { 
+    from { transform: translateX(100%); opacity: 0; } 
+    to { transform: translateX(0); opacity: 1; } 
+}
+
+@keyframes fadeOut { 
+    to { opacity: 0; transform: translateY(10px); } 
+}

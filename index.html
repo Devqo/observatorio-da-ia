@@ -1,0 +1,84 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>PostForge Studio | Premium IG Creator</title>
+    <link rel="stylesheet" href="styles.css">
+    
+    <!-- Tipografías Premium -->
+    <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;600;800&family=Space+Grotesk:wght@500;700&family=Playfair+Display:ital,wght@0,400;0,700;1,400&family=Archivo+Black&display=swap" rel="stylesheet">
+    
+    <!-- Iconos Phosphor -->
+    <script src="https://unpkg.com/@phosphor-icons/web"></script>
+    
+    <!-- html2canvas -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
+</head>
+<body>
+
+    <header class="topbar">
+        <div class="logo-area">
+            <i class="ph-fill ph-layers-three"></i>
+            <span>PostForge <b>Studio</b></span>
+        </div>
+        <button class="btn-primary" id="btn-export" onclick="exportSlides()">
+            <i class="ph-bold ph-download-simple"></i> Exportar Carrusel
+        </button>
+    </header>
+
+    <div class="app-container">
+        <aside class="sidebar">
+            <div class="panel-section">
+                <h3><i class="ph-bold ph-paint-brush"></i> Tema Visual</h3>
+                <div class="theme-selector">
+                    <label class="theme-card dark-aura">
+                        <input type="radio" name="theme" value="tpl-aura" onchange="changeTheme()" checked>
+                        <span>Aura (Neón/Glass)</span>
+                    </label>
+                    <label class="theme-card minimal-koe">
+                        <input type="radio" name="theme" value="tpl-thread" onchange="changeTheme()">
+                        <span>Thread (Minimalista)</span>
+                    </label>
+                    <label class="theme-card brutal-acid">
+                        <input type="radio" name="theme" value="tpl-acid" onchange="changeTheme()">
+                        <span>Acid (Brutalista)</span>
+                    </label>
+                    <label class="theme-card editorial">
+                        <input type="radio" name="theme" value="tpl-editorial" onchange="changeTheme()">
+                        <span>Editorial (Moda)</span>
+                    </label>
+                    <label class="theme-card startup">
+                        <input type="radio" name="theme" value="tpl-startup" onchange="changeTheme()">
+                        <span>Startup (SaaS)</span>
+                    </label>
+                </div>
+            </div>
+
+            <div class="panel-section">
+                <h3><i class="ph-bold ph-plus-square"></i> Añadir Diapositiva</h3>
+                <div class="add-grid">
+                    <button onclick="addSlide('titulo')"><i class="ph ph-text-h"></i> Portada</button>
+                    <button onclick="addSlide('texto')"><i class="ph ph-paragraph"></i> Texto</button>
+                    <button onclick="addSlide('lista')"><i class="ph ph-list-bullets"></i> Lista</button>
+                    <button onclick="addSlide('cita')"><i class="ph ph-quotes"></i> Cita</button>
+                    <button class="span-2" onclick="addSlide('cierre')"><i class="ph ph-bell-ringing"></i> Cierre (CTA)</button>
+                </div>
+            </div>
+        </aside>
+
+        <main class="canvas-area">
+            <div class="canvas-notice">
+                <i class="ph ph-info"></i> Haz clic en cualquier texto para editar. Usa la barra izquierda de cada slide para añadir imágenes.
+            </div>
+            <div id="slides-wrapper">
+                <!-- Slides aquí -->
+            </div>
+        </main>
+    </div>
+
+    <div id="toast-container"></div>
+
+    <script src="app.js"></script>
+</body>
+</html>
