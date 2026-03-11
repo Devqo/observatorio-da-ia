@@ -101,6 +101,13 @@ function addSlide(layout) {
         <button class="action-btn" onclick="moveSlide('${slideId}', 1)" title="Bajar"><i class="ph ph-caret-down"></i></button>
         <button class="action-btn" onclick="duplicateSlide('${slideId}')" title="Duplicar"><i class="ph ph-copy"></i></button>
         <button class="action-btn" onclick="triggerImageUpload('${slideId}')" title="Añadir Imagen"><i class="ph ph-image"></i></button>
+        <button class="action-btn" onclick="toggleTextBlockMenu('${slideId}')" title="Añadir bloque de texto" id="txtbtn-${slideId}"><i class="ph ph-text-t"></i></button>
+        <div class="text-block-menu" id="txtmenu-${slideId}" style="display:none;">
+            <button class="tblock-btn" onclick="addTextBlock('${slideId}', 'etiqueta')"><span class="tblock-icon">🏷</span> Etiqueta</button>
+            <button class="tblock-btn" onclick="addTextBlock('${slideId}', 'parrafo')"><span class="tblock-icon">¶</span> Párrafo</button>
+            <button class="tblock-btn" onclick="addTextBlock('${slideId}', 'destacado')"><span class="tblock-icon">❝</span> Destacado</button>
+            <button class="tblock-btn" onclick="addTextBlock('${slideId}', 'separador')"><span class="tblock-icon">—</span> Separador</button>
+        </div>
         <button class="action-btn delete" onclick="deleteSlide('${slideId}')" title="Borrar"><i class="ph ph-trash"></i></button>
         <div class="layout-picker" title="Distribución del slide">
             <button class="lyt-btn active" onclick="changeSlideLayout('${slideId}', 'lyt-stack')" title="Solo texto">
@@ -288,16 +295,19 @@ function insertImageToSlide(slideId, imageUrl) {
 // ==========================================
 function deleteSlide(id) {
     const slide = document.getElementById(id);
-    if (document.querySelectorAll('.slide-wrapper').length > 1) {
-        slide.style.opacity = 0;
-        setTimeout(() => {
-            slide.remove();
+    if (!slide) return;
+    
+    slide.style.opacity = 0;
+    setTimeout(() => {
+        slide.remove();
+        if (document.querySelectorAll('.slide-wrapper').length === 0) {
+            addSlide('titulo');
+        } else {
             updateSlideNumbers();
-        }, 200);
+        }
         showToast("Diapositiva eliminada", "ph-trash");
-    } else {
-        showToast("No puedes borrar la última slide", "ph-warning-circle");
-    }
+        saveToStorage();
+    }, 200);
 }
 
 function moveSlide(id, direction) {
@@ -465,6 +475,13 @@ function setupFormattingToolbar() {
         hideToolbar();
     });
 
+    // Cerrar menús de texto al hacer clic fuera
+    document.addEventListener('click', (e) => {
+        if (!e.target.closest('.text-block-menu') && !e.target.closest('[onclick^="toggleTextBlockMenu"]')) {
+            document.querySelectorAll('.text-block-menu').forEach(m => m.style.display = 'none');
+        }
+    });
+
     // También mostrar al enfocar por teclado
     document.addEventListener('focusin', (e) => {
         if (e.target.isContentEditable) {
@@ -598,6 +615,67 @@ function changeSlideLayout(slideId, newLayout) {
     saveToStorage();
 }
 
+function toggleTextBlockMenu(slideId) {
+    // Close all open menus first
+    document.querySelectorAll('.text-block-menu').forEach(m => {
+        if (m.id !== `txtmenu-${slideId}`) m.style.display = 'none';
+    });
+    const menu = document.getElementById(`txtmenu-${slideId}`);
+    if (menu) menu.style.display = menu.style.display === 'none' ? 'flex' : 'none';
+}
+
+function addTextBlock(slideId, type) {
+    const wrapper = document.getElementById(slideId);
+    if (!wrapper) return;
+
+    const slideContent = wrapper.querySelector('.slide-content');
+    // Insert into text-area if we're in a structured layout, otherwise directly
+    const target = slideContent.querySelector('.slide-text-area') || slideContent;
+
+    let el;
+    if (type === 'etiqueta') {
+        el = document.createElement('span');
+        el.className = 'mono';
+        el.contentEditable = 'true';
+        el.style.cssText = 'display:inline-block; margin-top: 12px;';
+        el.textContent = 'NUEVA ETIQUETA';
+    } else if (type === 'parrafo') {
+        el = document.createElement('p');
+        el.contentEditable = 'true';
+        el.style.cssText = 'margin-top: 12px;';
+        el.textContent = 'Escribe tu texto aquí. Puedes desarrollar una idea, añadir contexto o continuar el argumento.';
+    } else if (type === 'destacado') {
+        el = document.createElement('p');
+        el.contentEditable = 'true';
+        el.className = 'block-destacado';
+        el.style.cssText = 'margin-top: 14px; padding: 10px 16px; border-left: 3px solid currentColor; opacity: 0.85; font-style: italic;';
+        el.textContent = '«Una frase impactante o dato clave que quieras resaltar.»';
+    } else if (type === 'separador') {
+        el = document.createElement('div');
+        el.className = 'block-separator';
+        el.style.cssText = 'margin: 16px 0; height: 1px; background: currentColor; opacity: 0.2; pointer-events: none;';
+        el.setAttribute('contenteditable', 'false');
+    }
+
+    if (el) {
+        target.appendChild(el);
+        if (el.contentEditable === 'true') {
+            // Focus so user can immediately start typing
+            el.focus();
+            // Select all placeholder text
+            const range = document.createRange();
+            range.selectNodeContents(el);
+            window.getSelection().removeAllRanges();
+            window.getSelection().addRange(range);
+        }
+        showToast('Bloque añadido', 'ph-text-t');
+        saveToStorage();
+    }
+
+    // Close the menu
+    const menu = document.getElementById(`txtmenu-${slideId}`);
+    if (menu) menu.style.display = 'none';
+}
 
 function alignActiveSlide(alignment) {
     if (!activeFormatElement) return;
@@ -606,6 +684,14 @@ function alignActiveSlide(alignment) {
         slideContent.style.justifyContent = alignment;
         showToast("Alineación vertical actualizada", "ph-arrows-vertical");
     }
+}
+
+function deleteActiveFormatElement() {
+    if (!activeFormatElement) return;
+    activeFormatElement.remove();
+    hideToolbar();
+    showToast("Bloque eliminado", "ph-trash");
+    saveToStorage();
 }
 
 // ==========================================
