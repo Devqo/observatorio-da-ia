@@ -3,27 +3,32 @@ let globalAuthor = '@creador';
 let globalLogo = 'logo.svg';
 
 window.onload = () => {
-    addSlide('titulo');
+    if (!restoreFromStorage()) {
+        addSlide('titulo');
+    }
     setupCleanPaste();
     initSortable();
     setupAutoResize();
+    setupFormattingToolbar();
+    setupAutoSave();
 };
 
 function changeTheme() {
     const selectedTheme = document.querySelector('input[name="theme"]:checked').value;
     const slides = document.querySelectorAll('.slide');
-    
+
     slides.forEach(slide => {
         slide.className = slide.className.replace(/tpl-[a-z]+/g, '').trim();
         slide.classList.add(selectedTheme);
     });
     showToast("Tema actualizado", "ph-palette");
+    saveToStorage();
 }
 
 function setRatio(ratio) {
     document.querySelectorAll('.ratio-btn').forEach(btn => btn.classList.remove('active'));
     const container = document.getElementById('slides-wrapper');
-    
+
     if (ratio === '4:5') {
         document.getElementById('btn-ratio-45').classList.add('active');
         container.classList.add('ratio-portrait');
@@ -32,6 +37,7 @@ function setRatio(ratio) {
         container.classList.remove('ratio-portrait');
     }
     showToast(`Formato cambiado a ${ratio}`, "ph-aspect-ratio");
+    saveToStorage();
 }
 
 function updateGlobalAuthor(val) {
@@ -39,6 +45,7 @@ function updateGlobalAuthor(val) {
     document.querySelectorAll('.global-author-text').forEach(el => {
         el.innerText = globalAuthor;
     });
+    saveToStorage();
 }
 
 function updateGlobalLogo(input) {
@@ -52,6 +59,7 @@ function updateGlobalLogo(input) {
             img.src = globalLogo;
         });
         showToast("Logo global actualizado", "ph-image-square");
+        saveToStorage();
     };
     reader.readAsDataURL(file);
 }
@@ -85,7 +93,7 @@ function addSlide(layout) {
     wrapper.className = 'slide-wrapper';
     wrapper.id = slideId;
 
-    // BOTONES DE ACCIÓN (¡Nuevo botón de añadir imagen incluido!)
+    // BOTONES DE ACCIÓN
     const actionsPanel = document.createElement('div');
     actionsPanel.className = 'slide-actions';
     actionsPanel.innerHTML = `
@@ -158,10 +166,10 @@ function addSlide(layout) {
         innerHTML = `
             <div class="tweet-box">
                 <div class="tweet-header">
-                    <img src="${globalLogo}" class="tweet-avatar slide-logo" alt="Avatar">
+                    <img src="logo.svg" class="tweet-avatar" alt="Avatar">
                     <div>
-                        <b class="global-author-text">${globalAuthor}</b>
-                        <span contenteditable="true">Creador Digital</span>
+                        <b contenteditable="true">Nombre de Usuario</b>
+                        <span contenteditable="true">@handle_ejemplo</span>
                     </div>
                 </div>
                 <p contenteditable="true">Este formato simula un tweet o post de Threads. Funciona increíblemente bien para compartir pensamientos breves o "hot takes" que la gente quiere compartir en sus historias.</p>
@@ -214,7 +222,7 @@ function triggerImageUpload(slideId) {
     const input = document.createElement('input');
     input.type = 'file';
     input.accept = 'image/*';
-    
+
     // Cuando el usuario elige un archivo
     input.onchange = e => {
         const file = e.target.files[0];
@@ -227,17 +235,17 @@ function triggerImageUpload(slideId) {
         };
         reader.readAsDataURL(file);
     };
-    
+
     // Simulamos el clic para abrir la ventana de archivos
     input.click();
 }
 
 function insertImageToSlide(slideId, imageUrl) {
     const slideContent = document.querySelector(`#${slideId} .slide-content`);
-    
+
     // Comprobamos si ya hay una imagen en esta slide para reemplazarla
     let imgWrapper = slideContent.querySelector('.slide-media');
-    
+
     if (!imgWrapper) {
         // Si no hay, creamos el contenedor
         imgWrapper = document.createElement('div');
@@ -251,7 +259,7 @@ function insertImageToSlide(slideId, imageUrl) {
         // Si ya hay, solo cambiamos el origen de la imagen
         imgWrapper.querySelector('img').src = imageUrl;
     }
-    
+
     showToast("Imagen insertada", "ph-image");
 }
 
@@ -260,7 +268,7 @@ function insertImageToSlide(slideId, imageUrl) {
 // ==========================================
 function deleteSlide(id) {
     const slide = document.getElementById(id);
-    if(document.querySelectorAll('.slide-wrapper').length > 1) {
+    if (document.querySelectorAll('.slide-wrapper').length > 1) {
         slide.style.opacity = 0;
         setTimeout(() => {
             slide.remove();
@@ -287,15 +295,17 @@ function duplicateSlide(id) {
     const clone = original.cloneNode(true);
     slideCounter++;
     clone.id = `slide-${slideCounter}`;
-    
+
     // Actualizamos las funciones onclick del clon
     const btns = clone.querySelectorAll('.action-btn');
-    btns[0].setAttribute('onclick', `moveSlide('${clone.id}', -1)`);
-    btns[1].setAttribute('onclick', `moveSlide('${clone.id}', 1)`);
-    btns[2].setAttribute('onclick', `duplicateSlide('${clone.id}')`);
-    btns[3].setAttribute('onclick', `triggerImageUpload('${clone.id}')`);
-    btns[4].setAttribute('onclick', `deleteSlide('${clone.id}')`);
-    
+    if (btns.length >= 5) {
+        btns[0].setAttribute('onclick', `moveSlide('${clone.id}', -1)`);
+        btns[1].setAttribute('onclick', `moveSlide('${clone.id}', 1)`);
+        btns[2].setAttribute('onclick', `duplicateSlide('${clone.id}')`);
+        btns[3].setAttribute('onclick', `triggerImageUpload('${clone.id}')`);
+        btns[4].setAttribute('onclick', `deleteSlide('${clone.id}')`);
+    }
+
     original.parentNode.insertBefore(clone, original.nextSibling);
     updateSlideNumbers();
     showToast("Diapositiva duplicada", "ph-copy");
@@ -307,7 +317,7 @@ function duplicateSlide(id) {
 async function exportSlides() {
     const slides = document.querySelectorAll('.slide');
     const btn = document.getElementById('btn-export');
-    
+
     btn.innerHTML = `<i class="ph ph-spinner ph-spin"></i> Generando...`;
     btn.disabled = true;
     window.getSelection().removeAllRanges();
@@ -318,9 +328,9 @@ async function exportSlides() {
 
     for (let i = 0; i < slides.length; i++) {
         showToast(`Exportando slide ${i + 1} de ${slides.length}...`, "ph-hourglass");
-        
+
         const canvas = await html2canvas(slides[i], {
-            scale: 2, 
+            scale: 2,
             useCORS: true,
             backgroundColor: null
         });
@@ -342,7 +352,7 @@ async function exportSlides() {
 }
 
 function setupCleanPaste() {
-    document.addEventListener('paste', function(e) {
+    document.addEventListener('paste', function (e) {
         if (e.target.isContentEditable) {
             e.preventDefault();
             const text = (e.originalEvent || e).clipboardData.getData('text/plain');
@@ -352,13 +362,13 @@ function setupCleanPaste() {
 }
 
 function setupAutoResize() {
-    document.addEventListener('input', function(e) {
+    document.addEventListener('input', function (e) {
         if (e.target.isContentEditable) {
             let el = e.target;
             // Solo redimensionar si es un contenedor de párrafo o lista
-            if(el.tagName === 'P' || el.tagName === 'UL') {
+            if (el.tagName === 'P' || el.tagName === 'UL') {
                 let currentSize = parseFloat(window.getComputedStyle(el).fontSize);
-                while(el.scrollHeight > el.clientHeight && currentSize > 12) {
+                while (el.scrollHeight > el.clientHeight && currentSize > 12) {
                     currentSize -= 1;
                     el.style.fontSize = currentSize + 'px';
                 }
@@ -372,11 +382,320 @@ function showToast(message, iconClass) {
     const toast = document.createElement('div');
     toast.className = 'toast';
     toast.innerHTML = `<i class="${iconClass}" style="font-size: 20px;"></i> ${message}`;
-    
+
     container.appendChild(toast);
-    
+
     setTimeout(() => {
         toast.style.animation = 'fadeOut 0.3s forwards';
         setTimeout(() => toast.remove(), 300);
     }, 3000);
+}
+
+// ==========================================
+// LÓGICA DE BARRA DE FORMATO FLOTANTE
+// ==========================================
+let activeFormatElement = null;
+
+function setupFormattingToolbar() {
+    const toolbar = document.getElementById('formatting-toolbar');
+    
+    document.addEventListener('click', (e) => {
+        if (!toolbar) return;
+        
+        // Ignorar clics dentro de la propia barra de herramientas o botones para ella
+        if (toolbar.contains(e.target) || e.target.closest('.tool-btn') || e.target.closest('.tool-color-picker')) {
+            return;
+        }
+        
+        // Si hacemos clic en una imagen de la slide
+        if (e.target.tagName === 'IMG' && e.target.closest('.slide-media')) {
+            showToolbar(e.target);
+            document.querySelector('.img-tools').style.display = 'flex';
+            document.querySelector('.img-tools-divider').style.display = 'block';
+            document.querySelector('.align-tools').style.display = 'none';
+            document.querySelector('.align-tools-divider').style.display = 'none';
+            return;
+        }
+        
+        // Si hacemos clic en o dentro de un elemento editable
+        const editableElement = e.target.closest('[contenteditable="true"]');
+        if (editableElement) {
+            showToolbar(editableElement);
+            document.querySelector('.img-tools').style.display = 'none';
+            document.querySelector('.img-tools-divider').style.display = 'none';
+            document.querySelector('.align-tools').style.display = 'flex';
+            document.querySelector('.align-tools-divider').style.display = 'block';
+            
+            // Sincronizar color actual en el picker
+            const colorPicker = document.getElementById('text-color-picker');
+            if (colorPicker) {
+                const currentColor = window.getComputedStyle(editableElement).color;
+                if (currentColor) {
+                    const rgb = currentColor.match(/\d+/g);
+                    if (rgb && rgb.length >= 3) {
+                        const hex = '#' + ((1 << 24) + (+rgb[0] << 16) + (+rgb[1] << 8) + +rgb[2]).toString(16).slice(1);
+                        colorPicker.value = hex;
+                    }
+                }
+            }
+            return;
+        }
+
+        // Si hacemos clic fuera y no estamos arrastrando, esconder la barra
+        hideToolbar();
+    });
+
+    // También mostrar al enfocar por teclado
+    document.addEventListener('focusin', (e) => {
+        if (e.target.isContentEditable) {
+            showToolbar(e.target);
+            document.querySelector('.img-tools').style.display = 'none';
+            document.querySelector('.img-tools-divider').style.display = 'none';
+            document.querySelector('.align-tools').style.display = 'flex';
+            document.querySelector('.align-tools-divider').style.display = 'block';
+        }
+    });
+}
+
+function showToolbar(element) {
+    activeFormatElement = element;
+    const toolbar = document.getElementById('formatting-toolbar');
+    if (toolbar) toolbar.classList.add('active');
+}
+
+function hideToolbar() {
+    activeFormatElement = null;
+    const toolbar = document.getElementById('formatting-toolbar');
+    if (toolbar) toolbar.classList.remove('active');
+}
+
+function changeFontSize(delta) {
+    if (!activeFormatElement) return;
+    let currentSize = parseFloat(window.getComputedStyle(activeFormatElement).fontSize);
+    activeFormatElement.style.fontSize = (currentSize + delta) + 'px';
+}
+
+function changeTextAlign(align) {
+    if (!activeFormatElement) return;
+    activeFormatElement.style.textAlign = align;
+}
+
+function changeTextColor(color) {
+    if (!activeFormatElement) return;
+    
+    // Quitar gradientes y clips si existen (útil para sobreescribir estilos por defecto como Aura)
+    activeFormatElement.style.background = 'none';
+    activeFormatElement.style.webkitBackgroundClip = 'unset';
+    activeFormatElement.style.backgroundClip = 'unset';
+    activeFormatElement.style.webkitTextFillColor = 'unset';
+    
+    // Queremos usar el comando execCommand si hay selección dentro del elemento
+    const selection = window.getSelection();
+    if (selection.rangeCount > 0 && !selection.isCollapsed && activeFormatElement.contains(selection.anchorNode)) {
+        document.execCommand('foreColor', false, color);
+    } else {
+        // En caso de que no haya selección o esté colapsada, aplicar al elemento completo
+        activeFormatElement.style.color = color;
+    }
+}
+
+function changeImageFit(fit) {
+    if (!activeFormatElement || activeFormatElement.tagName !== 'IMG') return;
+    activeFormatElement.style.objectFit = fit;
+}
+
+function moveImageLayer(dir) {
+    if (!activeFormatElement || activeFormatElement.tagName !== 'IMG') return;
+    const mediaContainer = activeFormatElement.closest('.slide-media');
+    if (!mediaContainer) return;
+    
+    if (dir === -1 && mediaContainer.previousElementSibling) {
+        mediaContainer.parentNode.insertBefore(mediaContainer, mediaContainer.previousElementSibling);
+    } else if (dir === 1 && mediaContainer.nextElementSibling) {
+        mediaContainer.parentNode.insertBefore(mediaContainer.nextElementSibling, mediaContainer);
+    }
+}
+
+function alignActiveSlide(alignment) {
+    if (!activeFormatElement) return;
+    const slideContent = activeFormatElement.closest('.slide-content');
+    if (slideContent) {
+        slideContent.style.justifyContent = alignment;
+        showToast("Alineación vertical actualizada", "ph-arrows-vertical");
+    }
+}
+
+// ==========================================
+// PALETAS DE COLOR CURADAS
+// ==========================================
+const palettes = {
+    dark: { bg: '#121212', text: '#f3f4f6', accent: '#6366f1', name: 'dark' },
+    light: { bg: '#f8fafc', text: '#111827', accent: '#3b82f6', name: 'light' },
+    neon: { bg: '#000000', text: '#d4ff00', accent: '#d4ff00', name: 'neon' },
+    ocean: { bg: '#eff6ff', text: '#1e3a8a', accent: '#3b82f6', name: 'ocean' },
+    cream: { bg: '#EAE6DF', text: '#2c2c2c', accent: '#6B5B49', name: 'cream' }
+};
+
+function setGlobalPalette(name, btn) {
+    document.querySelectorAll('.palette-btn').forEach(b => b.classList.remove('active'));
+    btn.classList.add('active');
+
+    let styleEl = document.getElementById('palette-override');
+    if (!styleEl) {
+        styleEl = document.createElement('style');
+        styleEl.id = 'palette-override';
+        document.head.appendChild(styleEl);
+    }
+    
+    if (name === 'default') {
+        styleEl.innerHTML = '';
+        showToast("Paleta por defecto restaurada", "ph-palette");
+        return;
+    }
+    
+    const p = palettes[name];
+    const isDark = p.bg === '#121212' || p.bg === '#000000';
+    
+    styleEl.innerHTML = `
+        /* Overrides Globales */
+        .slide { background: ${p.bg} !important; color: ${p.text} !important; }
+        .slide h1, .slide h2, .slide p, .slide ul li { color: ${p.text} !important; border-color: ${p.text} !important; }
+        
+        /* Fixes específicos para limpiar text-shadows y gradients (Ej: Aura, Acid) */
+        .slide h1, .slide .big-number { background: none !important; -webkit-text-fill-color: ${p.text} !important; text-shadow: none !important; }
+        .tpl-acid h2 { background: ${p.text} !important; color: ${p.bg} !important; }
+        .tpl-acid p, .tpl-acid ul li { background: ${p.bg} !important; box-shadow: 4px 4px 0px ${p.text} !important; border: 3px solid ${p.text} !important; }
+        .tpl-acid { border-color: ${p.text} !important; }
+        
+        /* Fondos decorativos */
+        .tpl-aura::before { background: ${p.accent} !important; }
+        .tpl-aura::after { background: ${p.text} !important; opacity: 0.1 !important; }
+        .tpl-startup::before { background: ${p.accent} !important; opacity: 0.1 !important; }
+        .tpl-startup .slide-content { background: ${p.bg} !important; border-color: rgba(${isDark ? '255,255,255' : '0,0,0'}, 0.1) !important; }
+        .tpl-bento .slide-content { background: ${p.bg} !important; border-color: rgba(${isDark ? '255,255,255' : '0,0,0'}, 0.1) !important; }
+        .tpl-editorial::before { border-color: ${p.text} !important; opacity: 0.3 !important; }
+        
+        /* Logo */
+        .slide-logo { filter: ${isDark ? 'brightness(0) invert(1)' : 'brightness(0)'} !important; opacity: 0.8 !important; }
+        
+        /* Timeline paso a paso */
+        .timeline .item::before { background: ${p.text} !important; border-color: ${p.bg} !important; }
+        .timeline { border-left-color: rgba(${isDark ? '255,255,255' : '0,0,0'}, 0.2) !important; }
+    `;
+    
+    showToast("Paleta aplicada correctamente", "ph-palette");
+    saveToStorage();
+}
+
+// ==========================================
+// PERSISTENCIA: LOCALSTORAGE
+// ==========================================
+const STORAGE_KEY = 'postforge_v1';
+
+function saveToStorage() {
+    try {
+        const wrapper = document.getElementById('slides-wrapper');
+        const selectedTheme = document.querySelector('input[name="theme"]:checked')?.value || 'tpl-aura';
+        const paletteOverride = document.getElementById('palette-override')?.innerHTML || '';
+        const activePaletteBtn = document.querySelector('.palette-btn.active');
+        const activePaletteName = activePaletteBtn?.getAttribute('onclick')?.match(/'([^']+)'/)?.[1] || 'default';
+        const isPortrait = document.getElementById('slides-wrapper').classList.contains('ratio-portrait');
+
+        const state = {
+            slidesHtml: wrapper.innerHTML,
+            slideCounter,
+            selectedTheme,
+            paletteOverride,
+            activePaletteName,
+            isPortrait,
+            globalAuthor,
+            globalLogo
+        };
+
+        localStorage.setItem(STORAGE_KEY, JSON.stringify(state));
+    } catch (e) {
+        // Fallo silencioso (ej: cuota excedida por imágenes en base64)
+        console.warn('PostForge: No se pudo guardar en localStorage:', e.message);
+    }
+}
+
+function restoreFromStorage() {
+    try {
+        const raw = localStorage.getItem(STORAGE_KEY);
+        if (!raw) return false;
+
+        const state = JSON.parse(raw);
+        if (!state.slidesHtml) return false;
+
+        // Restaurar slides
+        const wrapper = document.getElementById('slides-wrapper');
+        wrapper.innerHTML = state.slidesHtml;
+        slideCounter = state.slideCounter || 0;
+
+        // Restaurar tema visual
+        if (state.selectedTheme) {
+            const themeRadio = document.querySelector(`input[name="theme"][value="${state.selectedTheme}"]`);
+            if (themeRadio) themeRadio.checked = true;
+        }
+
+        // Restaurar override de paleta
+        if (state.paletteOverride) {
+            let styleEl = document.getElementById('palette-override');
+            if (!styleEl) {
+                styleEl = document.createElement('style');
+                styleEl.id = 'palette-override';
+                document.head.appendChild(styleEl);
+            }
+            styleEl.innerHTML = state.paletteOverride;
+        }
+
+        // Marcar botón de paleta activa
+        if (state.activePaletteName) {
+            document.querySelectorAll('.palette-btn').forEach(btn => {
+                const name = btn.getAttribute('onclick')?.match(/'([^']+)'/)?.[1];
+                btn.classList.toggle('active', name === state.activePaletteName);
+            });
+        }
+
+        // Restaurar ratio
+        if (state.isPortrait) {
+            wrapper.classList.add('ratio-portrait');
+            document.getElementById('btn-ratio-45')?.classList.add('active');
+            document.getElementById('btn-ratio-11')?.classList.remove('active');
+        }
+
+        // Restaurar autor y logo
+        if (state.globalAuthor) {
+            globalAuthor = state.globalAuthor;
+            const authorInput = document.getElementById('global-author');
+            if (authorInput) authorInput.value = globalAuthor;
+        }
+        if (state.globalLogo && state.globalLogo !== 'logo.svg') {
+            globalLogo = state.globalLogo;
+        }
+
+        updateSlideNumbers();
+        return true;
+
+    } catch (e) {
+        console.warn('PostForge: Error al restaurar desde localStorage:', e.message);
+        return false;
+    }
+}
+
+function setupAutoSave() {
+    const wrapper = document.getElementById('slides-wrapper');
+    let debounceTimer = null;
+
+    const observer = new MutationObserver(() => {
+        clearTimeout(debounceTimer);
+        debounceTimer = setTimeout(saveToStorage, 800);
+    });
+
+    observer.observe(wrapper, {
+        childList: true,
+        subtree: true,
+        characterData: true,
+        attributes: true
+    });
 }
