@@ -528,6 +528,209 @@ body {
 }
 
 /* ==========================================================
+   PER-SLIDE LAYOUT VARIANTS
+   Applied as classes on .slide-content
+========================================================== */
+
+/* Split Left: text left, image right */
+.slide-content.lyt-split-left {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    grid-template-rows: 1fr;
+    gap: 0;
+    padding: 0;
+    flex-direction: unset;
+}
+.slide-content.lyt-split-left .slide-text-area {
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    padding: 38px 28px 38px 45px;
+    z-index: 2;
+}
+.slide-content.lyt-split-left .slide-media {
+    grid-column: 2;
+    grid-row: 1;
+    width: 100%;
+    height: 100%;
+    position: relative;
+    overflow: hidden;
+}
+.slide-content.lyt-split-left .slide-media img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    border-radius: 0;
+    border: none;
+    box-shadow: none;
+}
+
+/* Split Right: image left, text right */
+.slide-content.lyt-split-right {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    grid-template-rows: 1fr;
+    gap: 0;
+    padding: 0;
+    flex-direction: unset;
+}
+.slide-content.lyt-split-right .slide-text-area {
+    grid-column: 2;
+    grid-row: 1;
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    padding: 38px 45px 38px 28px;
+    z-index: 2;
+}
+.slide-content.lyt-split-right .slide-media {
+    grid-column: 1;
+    grid-row: 1;
+    width: 100%;
+    height: 100%;
+    position: relative;
+    overflow: hidden;
+}
+.slide-content.lyt-split-right .slide-media img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    border-radius: 0;
+    border: none;
+    box-shadow: none;
+}
+
+/* Top Image: image on top, text below */
+.slide-content.lyt-top-img {
+    flex-direction: column;
+    padding: 0;
+}
+.slide-content.lyt-top-img .slide-media {
+    flex: 0 0 50%;
+    width: 100%;
+    overflow: hidden;
+}
+.slide-content.lyt-top-img .slide-media img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    border-radius: 0;
+    border: none;
+    box-shadow: none;
+}
+.slide-content.lyt-top-img .slide-text-area {
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    padding: 28px 45px;
+}
+
+/* Bottom Image: text on top, image below */
+.slide-content.lyt-bottom-img {
+    flex-direction: column;
+    padding: 0;
+}
+.slide-content.lyt-bottom-img .slide-text-area {
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    padding: 28px 45px;
+}
+.slide-content.lyt-bottom-img .slide-media {
+    flex: 0 0 50%;
+    width: 100%;
+    overflow: hidden;
+}
+.slide-content.lyt-bottom-img .slide-media img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    border-radius: 0;
+    border: none;
+    box-shadow: none;
+}
+
+/* Full Image: image covers everything, text overlaid */
+.slide-content.lyt-full-img {
+    padding: 45px;
+    position: relative;
+}
+.slide-content.lyt-full-img .slide-media {
+    position: absolute !important;
+    inset: 0;
+    z-index: 0;
+    width: 100% !important;
+    height: 100% !important;
+}
+.slide-content.lyt-full-img .slide-media img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    border-radius: 0;
+    border: none;
+    box-shadow: none;
+}
+.slide-content.lyt-full-img .slide-media::after {
+    content: '';
+    position: absolute;
+    inset: 0;
+    background: linear-gradient(to top, rgba(0,0,0,0.75) 0%, rgba(0,0,0,0.2) 60%, transparent 100%);
+    z-index: 1;
+}
+.slide-content.lyt-full-img .slide-text-area {
+    position: relative;
+    z-index: 2;
+    margin-top: auto;
+    color: #fff !important;
+}
+.slide-content.lyt-full-img .slide-text-area * {
+    color: #fff !important;
+    text-shadow: 0 2px 8px rgba(0,0,0,0.5);
+    background: none !important;
+    -webkit-text-fill-color: #fff !important;
+}
+
+/* Layout picker in action panel */
+.layout-picker {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 4px;
+    padding: 6px;
+    border-top: 1px solid rgba(255,255,255,0.08);
+    margin-top: 2px;
+}
+.lyt-btn {
+    background: rgba(255,255,255,0.06);
+    border: 1px solid rgba(255,255,255,0.1);
+    border-radius: 5px;
+    width: 34px;
+    height: 26px;
+    padding: 3px;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    transition: 0.15s;
+}
+.lyt-btn:hover {
+    background: rgba(99,102,241,0.25);
+    border-color: rgba(99,102,241,0.5);
+}
+.lyt-btn.active {
+    background: rgba(99,102,241,0.35);
+    border-color: #6366f1;
+}
+.lyt-btn svg {
+    width: 22px;
+    height: 16px;
+    pointer-events: none;
+}
+
+
+
+/* ==========================================================
    6. SISTEMA DE LOGO SVG DINÁMICO (FILTROS CSS)
 ========================================================== */
 .slide-logo {
