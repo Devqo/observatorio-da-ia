@@ -437,6 +437,7 @@ body {
     transition: 0.2s;
     position: absolute;
     left: -60px;
+    z-index: 100;
 }
 
 .slide-wrapper:hover .slide-actions {
@@ -457,6 +458,63 @@ body {
     align-items: center;
     font-size: 18px;
     transition: 0.2s;
+}
+
+/* Menú de Bloques de Texto (Popover) */
+.text-block-menu {
+    position: absolute;
+    left: 48px;
+    top: 50%;
+    transform: translateY(-50%);
+    background: var(--bg-panel);
+    border: 1px solid var(--border);
+    border-radius: 8px;
+    padding: 8px;
+    display: flex;
+    flex-direction: column;
+    gap: 4px;
+    min-width: 140px;
+    box-shadow: 0 10px 25px rgba(0,0,0,0.5);
+    z-index: 100;
+}
+
+.text-block-menu::before {
+    content: '';
+    position: absolute;
+    left: -5px;
+    top: 50%;
+    transform: translateY(-50%) rotate(45deg);
+    width: 10px;
+    height: 10px;
+    background: var(--bg-panel);
+    border-left: 1px solid var(--border);
+    border-bottom: 1px solid var(--border);
+}
+
+.tblock-btn {
+    background: transparent;
+    border: none;
+    color: var(--text);
+    padding: 8px 12px;
+    text-align: left;
+    border-radius: 4px;
+    cursor: pointer;
+    font-size: 13px;
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    transition: 0.15s;
+}
+
+.tblock-btn:hover {
+    background: rgba(255,255,255,0.06);
+}
+
+.tblock-icon {
+    opacity: 0.5;
+    font-size: 15px;
+    width: 16px;
+    text-align: center;
 }
 
 .action-btn:hover {
