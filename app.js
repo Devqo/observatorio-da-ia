@@ -1,5 +1,5 @@
 let slideCounter = 0;
-let globalAuthor = '@observatoriodaia';
+let globalAuthor = '@creador';
 let globalLogo = 'logo.svg';
 
 window.onload = () => {
@@ -102,6 +102,26 @@ function addSlide(layout) {
         <button class="action-btn" onclick="duplicateSlide('${slideId}')" title="Duplicar"><i class="ph ph-copy"></i></button>
         <button class="action-btn" onclick="triggerImageUpload('${slideId}')" title="Añadir Imagen"><i class="ph ph-image"></i></button>
         <button class="action-btn delete" onclick="deleteSlide('${slideId}')" title="Borrar"><i class="ph ph-trash"></i></button>
+        <div class="layout-picker" title="Distribución del slide">
+            <button class="lyt-btn active" onclick="changeSlideLayout('${slideId}', 'lyt-stack')" title="Solo texto">
+                <svg viewBox="0 0 22 16" fill="none"><rect x="2" y="2" width="18" height="3" rx="1" fill="currentColor" opacity=".9"/><rect x="2" y="7" width="18" height="2" rx="1" fill="currentColor" opacity=".5"/><rect x="2" y="11" width="12" height="2" rx="1" fill="currentColor" opacity=".5"/></svg>
+            </button>
+            <button class="lyt-btn" onclick="changeSlideLayout('${slideId}', 'lyt-split-left')" title="Texto izq, imagen der">
+                <svg viewBox="0 0 22 16" fill="none"><rect x="1" y="1" width="9" height="14" rx="1" fill="currentColor" opacity=".4"/><rect x="12" y="1" width="9" height="14" rx="1" fill="currentColor" opacity=".9"/></svg>
+            </button>
+            <button class="lyt-btn" onclick="changeSlideLayout('${slideId}', 'lyt-split-right')" title="Imagen izq, texto der">
+                <svg viewBox="0 0 22 16" fill="none"><rect x="1" y="1" width="9" height="14" rx="1" fill="currentColor" opacity=".9"/><rect x="12" y="1" width="9" height="14" rx="1" fill="currentColor" opacity=".4"/></svg>
+            </button>
+            <button class="lyt-btn" onclick="changeSlideLayout('${slideId}', 'lyt-top-img')" title="Imagen arriba, texto abajo">
+                <svg viewBox="0 0 22 16" fill="none"><rect x="1" y="1" width="20" height="7" rx="1" fill="currentColor" opacity=".9"/><rect x="1" y="10" width="20" height="5" rx="1" fill="currentColor" opacity=".4"/></svg>
+            </button>
+            <button class="lyt-btn" onclick="changeSlideLayout('${slideId}', 'lyt-bottom-img')" title="Texto arriba, imagen abajo">
+                <svg viewBox="0 0 22 16" fill="none"><rect x="1" y="1" width="20" height="5" rx="1" fill="currentColor" opacity=".4"/><rect x="1" y="8" width="20" height="7" rx="1" fill="currentColor" opacity=".9"/></svg>
+            </button>
+            <button class="lyt-btn" onclick="changeSlideLayout('${slideId}', 'lyt-full-img')" title="Imagen de fondo">
+                <svg viewBox="0 0 22 16" fill="none"><rect x="1" y="1" width="20" height="14" rx="1" fill="currentColor" opacity=".9"/><rect x="3" y="9" width="14" height="2" rx="1" fill="white" opacity=".8"/><rect x="3" y="12" width="9" height="1.5" rx=".75" fill="white" opacity=".5"/></svg>
+            </button>
+        </div>
     `;
 
     const slide = document.createElement('div');
@@ -516,6 +536,69 @@ function moveImageLayer(dir) {
     }
 }
 
+const LAYOUT_CLASSES = ['lyt-stack', 'lyt-split-left', 'lyt-split-right', 'lyt-top-img', 'lyt-bottom-img', 'lyt-full-img'];
+
+function changeSlideLayout(slideId, newLayout) {
+    const wrapper = document.getElementById(slideId);
+    if (!wrapper) return;
+
+    const slideContent = wrapper.querySelector('.slide-content');
+    if (!slideContent) return;
+
+    // Mark active button in picker
+    wrapper.querySelectorAll('.lyt-btn').forEach(btn => {
+        const isActive = btn.getAttribute('onclick')?.includes(`'${newLayout}'`);
+        btn.classList.toggle('active', isActive);
+    });
+
+    // Get current layout
+    const currentLayout = LAYOUT_CLASSES.find(c => slideContent.classList.contains(c)) || 'lyt-stack';
+    if (currentLayout === newLayout) return;
+
+    // Separate text nodes from media containers
+    const mediaContainers = [...slideContent.querySelectorAll('.slide-media')];
+
+    // --- Going FROM stack (flat) TO a structured layout ---
+    if (currentLayout === 'lyt-stack') {
+        // Wrap all non-media direct children into a .slide-text-area
+        const textArea = document.createElement('div');
+        textArea.className = 'slide-text-area';
+        const directChildren = [...slideContent.children].filter(c => !c.classList.contains('slide-media'));
+        directChildren.forEach(child => textArea.appendChild(child));
+        slideContent.insertBefore(textArea, slideContent.firstChild);
+    }
+
+    // --- Going FROM a structured layout BACK TO stack ---
+    if (newLayout === 'lyt-stack') {
+        const textArea = slideContent.querySelector('.slide-text-area');
+        if (textArea) {
+            // Move all children of text-area back up to slide-content
+            [...textArea.children].forEach(child => slideContent.insertBefore(child, textArea));
+            textArea.remove();
+        }
+    }
+
+    // Ensure .slide-media is always a direct child of slide-content (not inside text-area)
+    mediaContainers.forEach(media => {
+        if (media.parentElement !== slideContent) {
+            slideContent.appendChild(media);
+        }
+    });
+
+    // Apply new layout class
+    slideContent.classList.remove(...LAYOUT_CLASSES);
+    slideContent.classList.add(newLayout);
+
+    // Reset inline justifyContent that might conflict with grid layouts
+    if (newLayout !== 'lyt-stack') {
+        slideContent.style.justifyContent = '';
+    }
+
+    showToast('Distribución actualizada', 'ph-layout');
+    saveToStorage();
+}
+
+
 function alignActiveSlide(alignment) {
     if (!activeFormatElement) return;
     const slideContent = activeFormatElement.closest('.slide-content');
@@ -614,8 +697,9 @@ function saveToStorage() {
 
         localStorage.setItem(STORAGE_KEY, JSON.stringify(state));
     } catch (e) {
-        // Fallo silencioso (ej: cuota excedida por imágenes en base64)
-        console.warn('PostForge: No se pudo guardar en localStorage:', e.message);
+        // Cuota excedida (normalmente por imágenes en base64 muy grandes)
+        showToast('⚠️ No se pudo autoguardar — imagen demasiado grande para el navegador', 'ph-warning');
+        console.warn('PostForge: localStorage quota exceeded:', e.message);
     }
 }
 
@@ -699,4 +783,3 @@ function setupAutoSave() {
         attributes: true
     });
 }
-
