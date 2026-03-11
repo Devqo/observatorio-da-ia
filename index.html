@@ -95,6 +95,30 @@
             </div>
 
             <div class="panel-section">
+                <h3><i class="ph-bold ph-palette"></i> Paletas Curadas</h3>
+                <div class="palette-selector">
+                    <button class="palette-btn active" onclick="setGlobalPalette('default', this)">
+                        <div class="palette-preview" style="background: linear-gradient(135deg, #111 50%, #f4f4f5 50%);"></div> Original
+                    </button>
+                    <button class="palette-btn" onclick="setGlobalPalette('dark', this)">
+                        <div class="palette-preview" style="background: #121212;"></div> Noche Infinita
+                    </button>
+                    <button class="palette-btn" onclick="setGlobalPalette('light', this)">
+                        <div class="palette-preview" style="background: #f8fafc; border: 1px solid #ccc;"></div> Día Limpio
+                    </button>
+                    <button class="palette-btn" onclick="setGlobalPalette('neon', this)">
+                        <div class="palette-preview" style="background: #000; box-shadow: inset 0 0 0 2px #d4ff00;"></div> Neón Contraste
+                    </button>
+                    <button class="palette-btn" onclick="setGlobalPalette('ocean', this)">
+                        <div class="palette-preview" style="background: #eff6ff; box-shadow: inset 0 0 0 2px #3b82f6;"></div> Brisa Océano
+                    </button>
+                    <button class="palette-btn" onclick="setGlobalPalette('cream', this)">
+                        <div class="palette-preview" style="background: #EAE6DF; box-shadow: inset 0 0 0 2px #4a4a4a;"></div> Crema Elegante
+                    </button>
+                </div>
+            </div>
+
+            <div class="panel-section">
                 <h3><i class="ph-bold ph-plus-square"></i> Añadir Diapositiva</h3>
                 <div class="add-grid">
                     <button onclick="addSlide('titulo')"><i class="ph ph-text-h"></i> Portada</button>
@@ -119,6 +143,41 @@
                 <!-- Slides aquí -->
             </div>
         </main>
+    </div>
+
+    <!-- Barra de Formato Flotante -->
+    <div id="formatting-toolbar" class="formatting-toolbar">
+        <div class="toolbar-group">
+            <button class="tool-btn" onclick="changeFontSize(-2)" title="Reducir Texto"><i class="ph ph-minus"></i></button>
+            <button class="tool-btn" onclick="changeFontSize(2)" title="Aumentar Texto"><i class="ph ph-plus"></i></button>
+        </div>
+        <div class="toolbar-divider"></div>
+        <div class="toolbar-group">
+            <button class="tool-btn" onclick="changeTextAlign('left')" title="Alinear Izquierda"><i class="ph ph-text-align-left"></i></button>
+            <button class="tool-btn" onclick="changeTextAlign('center')" title="Centrar"><i class="ph ph-text-align-center"></i></button>
+            <button class="tool-btn" onclick="changeTextAlign('right')" title="Alinear Derecha"><i class="ph ph-text-align-right"></i></button>
+        </div>
+        <div class="toolbar-divider"></div>
+        <div class="toolbar-group">
+            <label class="tool-color-picker" title="Color del Texto">
+                <i class="ph-fill ph-palette"></i>
+                <input type="color" id="text-color-picker" onchange="changeTextColor(this.value)">
+            </label>
+        </div>
+        <div class="toolbar-divider align-tools-divider"></div>
+        <div class="toolbar-group align-tools">
+            <button class="tool-btn" onclick="alignActiveSlide('flex-start')" title="Contenido Arriba"><i class="ph ph-arrow-line-up"></i></button>
+            <button class="tool-btn" onclick="alignActiveSlide('center')" title="Contenido Centro"><i class="ph ph-arrows-vertical"></i></button>
+            <button class="tool-btn" onclick="alignActiveSlide('flex-end')" title="Contenido Abajo"><i class="ph ph-arrow-line-down"></i></button>
+        </div>
+        <div class="toolbar-divider img-tools-divider" style="display: none;"></div>
+        <div class="toolbar-group img-tools" style="display: none;">
+            <button class="tool-btn" onclick="changeImageFit('cover')" title="Rellenar"><i class="ph ph-corners-out"></i></button>
+            <button class="tool-btn" onclick="changeImageFit('contain')" title="Ajustar"><i class="ph ph-corners-in"></i></button>
+            <div class="toolbar-divider" style="margin: 0 4px;"></div>
+            <button class="tool-btn" onclick="moveImageLayer(-1)" title="Subir Imagen"><i class="ph ph-arrow-up"></i></button>
+            <button class="tool-btn" onclick="moveImageLayer(1)" title="Bajar Imagen"><i class="ph ph-arrow-down"></i></button>
+        </div>
     </div>
 
     <div id="toast-container"></div>
