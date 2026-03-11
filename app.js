@@ -1,5 +1,5 @@
 let slideCounter = 0;
-let globalAuthor = '@creador';
+let globalAuthor = '@observatoriodaia';
 let globalLogo = 'logo.svg';
 
 window.onload = () => {
@@ -699,3 +699,4 @@ function setupAutoSave() {
         attributes: true
     });
 }
+
